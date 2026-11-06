@@ -1,0 +1,30 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+      - name: Skonfiguruj JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Skonfiguruj Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Zbuduj APK debug
+        run: gradle :android:app:assembleDebug
+      - name: Udostępnij APK do pobrania
+        uses: actions/upload-artifact@v4
+        with:
+          name: maly-matematyk-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MalyMatematykTask",
+  "type": "object",
+  "required": ["id", "title", "grade", "track", "difficulty", "prompt", "answer", "explanation", "sourceType", "licenseStatus"],
+  "properties": {
+    "id": {"type": "string"},
+    "title": {"type": "string", "minLength": 2},
+    "grade": {"type": "integer", "minimum": 1, "maximum": 8},
+    "track": {"enum": ["Kangur", "LEON", "AleMózgi", "Matematyka i logika", "Python i algorytmika"]},
+    "difficulty": {"enum": ["Łatwy", "Średni", "Trudny", "Mistrzowski"]},
+    "topic": {"type": "string"},
+    "prompt": {"type": "string", "minLength": 1},
+    "answer": {"type": "string", "minLength": 1},
+    "explanation": {"type": "string"},
+    "hint": {"type": "string"},
+    "sourceType": {"enum": ["autorskie", "archiwalne-licencjonowane", "public-domain"]},
+    "sourceReference": {"type": "string"},
+    "licenseStatus": {"enum": ["do-weryfikacji", "zatwierdzone", "niedozwolone"]}
+  }
+}
