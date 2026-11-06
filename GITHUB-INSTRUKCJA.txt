@@ -1,0 +1,19 @@
+JAK ZBUDOWAĆ APK NA GITHUB (WINDOWS 11)
+
+1. Rozpakuj zawartość ZIP na komputerze.
+2. Wejdź na https://github.com/new i utwórz repozytorium, np. maly-matematyk.
+   Dla projektu dziecięcego wybierz Private na czas testów.
+3. Otwórz nowe repozytorium i wybierz "uploading an existing file".
+4. Prześlij ZAWARTOŚĆ folderu maly_matematyk (nie sam folder jako jeden plik).
+   Ważne: prześlij również ukryty katalog .github/workflows.
+5. Zatwierdź zmiany przyciskiem Commit changes.
+6. Wejdź w zakładkę Actions. Workflow "Build Android APK" powinien uruchomić się sam.
+   Jeśli nie, wybierz go i kliknij Run workflow.
+7. Po zakończeniu z zielonym znakiem sukcesu otwórz uruchomienie workflow.
+8. Na dole w sekcji Artifacts pobierz maly-matematyk-debug-apk.
+9. Rozpakuj pobrany ZIP. W środku będzie app-debug.apk.
+10. Przenieś APK na telefon z Androidem i zainstaluj. Telefon może poprosić o zgodę
+    na instalowanie aplikacji z danego źródła.
+
+UWAGA: To testowa kompilacja debug, nie wersja do publikacji w Google Play.
+Nie umieszczaj danych dzieci ani prawdziwych kont użytkowników w tej wersji.
