@@ -2,6 +2,10 @@ package pl.malymatematyk.app
 
 import android.content.Context
 import android.os.Bundle
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -40,19 +44,31 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Track(val title: String, val icon: String, val subtitle: String) {
+internal enum class Track(val title: String, val icon: String, val subtitle: String) {
     ALL("Wszystkie", "✨", "Mieszany trening"), KANGAROO("Kangur", "🐾", "Matematyka konkursowa"),
-    LEON("LEON", "🏆", "Trening konkursowy"), ALE_MOZGI("AleMózgi", "🧠", "Logika i algorytmika"),
+    LEON("LEON", "🏆", "Trening konkursowy"), ALE_MOZGI("AleMózgi", "🧠", "Logika i algorytmika"), PYTHON("Python", "🐍", "Programowanie i algorytmika"),
     LOGIC("Logika", "🔎", "Łamigłówki"), MATH("Matematyka", "➗", "Rachunki i geometria")
 }
 
-private data class Question(
+internal data class Question(
     val grade: Int, val track: Track, val prompt: String, val options: List<String>,
     val answer: Int, val hint: String, val explanation: String
 )
 
 @Composable
 private fun MathApp(initialGrade: Int, initialPoints: Int, onSave: (Int, Int) -> Unit) {
+    val context = LocalContext.current
+    var remoteTasks by remember { mutableStateOf(SupabaseTasks.loadCached(context)) }
+    var syncLabel by remember { mutableStateOf(if (remoteTasks.isEmpty()) "Tryb offline · zadania w aplikacji" else "Zadania zapisane offline") }
+    LaunchedEffect(Unit) {
+        try {
+            val fresh = withContext(Dispatchers.IO) { SupabaseTasks.fetchAndCache(context) }
+            remoteTasks = fresh
+            syncLabel = "Zsynchronizowano zadania online"
+        } catch (_: Exception) {
+            syncLabel = if (remoteTasks.isEmpty()) "Brak internetu · tryb offline" else "Offline · używam zapisanych zadań"
+        }
+    }
     var grade by remember { mutableIntStateOf(initialGrade.coerceIn(1, 8)) }
     var points by remember { mutableIntStateOf(initialPoints) }
     var track by remember { mutableStateOf(Track.ALL) }
@@ -60,7 +76,7 @@ private fun MathApp(initialGrade: Int, initialPoints: Int, onSave: (Int, Int) ->
     var selected by remember { mutableIntStateOf(-1) }
     var checked by remember { mutableStateOf(false) }
     var hintVisible by remember { mutableStateOf(false) }
-    val tasks = remember(grade, track) { questionBank.filter { it.grade == grade && (track == Track.ALL || it.track == track) } }
+    val tasks = remember(grade, track, remoteTasks) { (questionBank + remoteTasks).filter { it.grade == grade && (track == Track.ALL || it.track == track) } }
     val task = tasks.getOrNull(index)
     fun reset() { selected = -1; checked = false; hintVisible = false }
 
@@ -100,7 +116,7 @@ private fun MathApp(initialGrade: Int, initialPoints: Int, onSave: (Int, Int) ->
                             Text("$points", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.ExtraBold)
                         }
                         Surface(color = Color.White.copy(alpha = .16f), shape = RoundedCornerShape(12.dp)) {
-                            Text("✓ Działa offline", color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp))
+                            Text("✓ $syncLabel", color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp))
                         }
                     }
                 }
@@ -108,7 +124,7 @@ private fun MathApp(initialGrade: Int, initialPoints: Int, onSave: (Int, Int) ->
             item { Text("WYBIERZ TRENING", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(Track.KANGAROO, Track.LEON, Track.ALE_MOZGI, Track.LOGIC, Track.MATH).chunked(2).forEach { pair ->
+                    listOf(Track.KANGAROO, Track.LEON, Track.ALE_MOZGI, Track.PYTHON, Track.LOGIC, Track.MATH).chunked(2).forEach { pair ->
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             pair.forEach { t -> TrackCard(t, track == t, Modifier.weight(1f)) { track = if (track == t) Track.ALL else t; index = 0; reset() } }
                             if (pair.size == 1) Spacer(Modifier.weight(1f))
@@ -163,7 +179,7 @@ private fun MathApp(initialGrade: Int, initialPoints: Int, onSave: (Int, Int) ->
                     }
                 }
             }
-            item { Text("Wersja 0.2 · zestaw demonstracyjny zapisany w aplikacji", color = Color.Gray, fontSize = 11.sp) }
+            item { Text("Mały matematyk · synchronizacja Supabase + tryb offline", color = Color.Gray, fontSize = 11.sp) }
         }
     }
 }
